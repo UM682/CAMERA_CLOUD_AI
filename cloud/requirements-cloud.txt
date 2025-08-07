@@ -1,0 +1,22 @@
+# クラウドサーバー専用の依存関係
+
+# Web API フレームワーク
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# 画像処理とAI
+opencv-python>=4.8.1.78
+numpy>=1.24.3
+
+# データ検証
+pydantic>=2.5.0
+pydantic-settings>=2.0.3
+
+# CORS対応とファイルアップロード
+python-multipart>=0.0.6
+
+# 設定管理
+python-dotenv>=1.0.0
+
+# ログ
+loguru>=0.7.2

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # クラウドAPIサーバー
+  camera-ai-api:
+    build:
+      context: ./cloud
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - CAMERA_AI_HOST=0.0.0.0
+      - CAMERA_AI_PORT=8000
+      - CAMERA_AI_DEBUG=false
+      - CAMERA_AI_LOG_LEVEL=INFO
+    volumes:
+      - ./cloud:/app
+      - api_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx（リバースプロキシ・ロードバランサー）
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - camera-ai-api
+    restart: unless-stopped
+
+  # Redis（将来的なキャッシュ用）
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  api_logs:
+  redis_data:
