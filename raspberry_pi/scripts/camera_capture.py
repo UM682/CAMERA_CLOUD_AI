@@ -156,7 +156,7 @@ def main():
                       help='実行モード: single(1回撮影) または continuous(連続撮影)')
     parser.add_argument('--interval', type=int, default=10,
                       help='連続撮影モードでの撮影間隔（秒）')
-    parser.add_argument('--config', default='../config/config.json',
+    parser.add_argument('--config', default='config/config.json',
                       help='設定ファイルのパス')
     
     args = parser.parse_args()
