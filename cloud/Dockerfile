@@ -2,8 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# システムの依存関係をインストール
+# システムの依存関係をインストール（顔認識用）
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    libopenblas-dev \
+    liblapack-dev \
+    libx11-dev \
+    libgtk-3-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -27,5 +33,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# アプリケーションを起動
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# アプリケーションを起動（Renderの$PORT環境変数を使用）
+CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}
