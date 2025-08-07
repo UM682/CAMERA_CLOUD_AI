@@ -29,6 +29,25 @@ app.add_middleware(
 # 顔認識エンジンの初期化
 face_recognizer = FaceRecognizer()
 
+@app.get("/")
+async def root():
+    """
+    API情報を表示
+    """
+    return {
+        "service": "Camera Cloud AI API",
+        "version": "1.0.0",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "stats": "/stats", 
+            "upload": "/upload (POST)",
+            "docs": "/docs"
+        },
+        "description": "Raspberry Pi Zero 2W camera capture with cloud-based face recognition",
+        "timestamp": datetime.now().isoformat()
+    }
+
 @app.post("/upload")
 async def upload_and_analyze(
     image: UploadFile = File(...),
