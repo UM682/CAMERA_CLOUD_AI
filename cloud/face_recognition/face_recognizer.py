@@ -4,29 +4,43 @@ import time
 import logging
 from typing import Dict, List, Tuple
 import os
+try:
+    import mediapipe as mp
+    MEDIAPIPE_AVAILABLE = True
+except ImportError:
+    MEDIAPIPE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 class FaceRecognizer:
     def __init__(self):
         self.face_cascade = None
+        self.mp_face_detection = None
         self.total_requests = 0
         self.total_faces_detected = 0
         self.load_models()
     
     def load_models(self):
         """
-        OpenCVのHaar Cascade分類器を読み込み
+        顔検出モデルを読み込み（MediaPipe優先、フォールバックでOpenCV）
         """
         try:
-            # OpenCVのデフォルトのHaar Cascade分類器を使用
+            # MediaPipeが利用可能な場合は優先使用
+            if MEDIAPIPE_AVAILABLE:
+                mp_face_detection = mp.solutions.face_detection
+                self.mp_face_detection = mp_face_detection.FaceDetection(
+                    model_selection=0, min_detection_confidence=0.5
+                )
+                logger.info("MediaPipe顔検出モデルの読み込みが完了しました")
+            
+            # OpenCVのHaar Cascade分類器もロード（フォールバック用）
             cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
             self.face_cascade = cv2.CascadeClassifier(cascade_path)
             
             if self.face_cascade.empty():
-                raise Exception("Haar Cascade分類器の読み込みに失敗しました")
-            
-            logger.info("顔認識モデルの読み込みが完了しました")
+                logger.warning("Haar Cascade分類器の読み込みに失敗しました")
+            else:
+                logger.info("OpenCV Haar Cascade分類器の読み込みが完了しました")
             
         except Exception as e:
             logger.error(f"モデル読み込みエラー: {e}")
@@ -34,7 +48,7 @@ class FaceRecognizer:
     
     def detect_faces(self, image: np.ndarray) -> Dict:
         """
-        画像から顔を検出
+        画像から顔を検出（MediaPipe優先、フォールバックでHaar Cascade）
         
         Args:
             image: OpenCVで読み込んだ画像 (BGR format)
@@ -42,6 +56,69 @@ class FaceRecognizer:
         Returns:
             検出結果の辞書
         """
+        # MediaPipeが利用可能な場合は優先使用
+        if self.mp_face_detection:
+            return self._detect_faces_mediapipe(image)
+        else:
+            return self._detect_faces_opencv(image)
+    
+    def _detect_faces_mediapipe(self, image: np.ndarray) -> Dict:
+        """MediaPipeを使用した顔検出"""
+        start_time = time.time()
+        
+        try:
+            # BGR to RGB
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = self.mp_face_detection.process(rgb_image)
+            
+            processing_time = time.time() - start_time
+            
+            # 統計を更新
+            self.total_requests += 1
+            
+            face_locations = []
+            confidence_scores = []
+            
+            if results.detections:
+                h, w = image.shape[:2]
+                for detection in results.detections:
+                    bbox = detection.location_data.relative_bounding_box
+                    x = int(bbox.xmin * w)
+                    y = int(bbox.ymin * h)
+                    width = int(bbox.width * w)
+                    height = int(bbox.height * h)
+                    
+                    face_locations.append({
+                        "x": x,
+                        "y": y,
+                        "width": width,
+                        "height": height
+                    })
+                    confidence_scores.append(round(detection.score[0], 2))
+            
+            self.total_faces_detected += len(face_locations)
+            
+            result = {
+                "face_count": len(face_locations),
+                "face_locations": face_locations,
+                "confidence_scores": confidence_scores,
+                "processing_time": round(processing_time, 3),
+                "method": "MediaPipe",
+                "image_size": {
+                    "width": image.shape[1],
+                    "height": image.shape[0]
+                }
+            }
+            
+            logger.info(f"MediaPipe顔検出完了: {len(face_locations)}個の顔を検出")
+            return result
+            
+        except Exception as e:
+            logger.error(f"MediaPipe顔検出エラー: {e}")
+            return self._detect_faces_opencv(image)
+    
+    def _detect_faces_opencv(self, image: np.ndarray) -> Dict:
+        """OpenCV Haar Cascadeを使用した顔検出"""
         start_time = time.time()
         
         try:
