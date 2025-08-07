@@ -2,7 +2,7 @@ services:
   - type: web
     name: camera-ai-api
     runtime: python3
-    buildCommand: "pip install -r cloud/requirements-cloud.txt"
+    buildCommand: "pip install --upgrade pip && pip install -r cloud/requirements-cloud.txt"
     startCommand: "cd cloud && python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT"
     plan: free
     healthCheckPath: /health
@@ -16,4 +16,4 @@ services:
       - key: CAMERA_AI_CONFIDENCE_THRESHOLD
         value: "0.5"
       - key: PYTHONPATH
-        value: "/opt/render/project/src"
+        value: "/opt/render/project/src:/opt/render/project/src/cloud"
