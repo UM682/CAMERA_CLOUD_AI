@@ -20,11 +20,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Pythonの依存関係をインストール
-COPY requirements-cloud.txt .
+COPY cloud/requirements-cloud.txt .
 RUN pip install --no-cache-dir -r requirements-cloud.txt
 
 # アプリケーションコードをコピー
-COPY . .
+COPY cloud/ .
 
 # ポート8000を公開
 EXPOSE 8000
