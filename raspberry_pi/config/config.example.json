@@ -1,6 +1,6 @@
 {
     "device_id": "raspberrypi_001",
-    "local_image_path": "/home/pi/camera_images",
+    "local_image_path": "./camera_images",
     "cloud_api_url": "https://camera-cloud-ai.onrender.com",
     "max_image_age_hours": 24,
     "camera_settings": {
