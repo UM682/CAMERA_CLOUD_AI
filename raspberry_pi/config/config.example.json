@@ -1,0 +1,35 @@
+{
+    "device_id": "raspberrypi_001",
+    "local_image_path": "/home/pi/camera_images",
+    "cloud_api_url": "https://camera-cloud-ai.onrender.com",
+    "max_image_age_hours": 24,
+    "camera_settings": {
+        "resolution": {
+            "width": 640,
+            "height": 480
+        },
+        "preview_resolution": {
+            "width": 320,
+            "height": 240
+        },
+        "format": "jpeg",
+        "quality": 85
+    },
+    "detection_settings": {
+        "confidence_threshold": 0.5,
+        "min_face_size": 30
+    },
+    "notification": {
+        "enabled": true,
+        "webhook_url": "",
+        "slack_token": "",
+        "email": {
+            "enabled": false,
+            "smtp_server": "smtp.gmail.com",
+            "smtp_port": 587,
+            "username": "",
+            "password": "",
+            "to_address": ""
+        }
+    }
+}
